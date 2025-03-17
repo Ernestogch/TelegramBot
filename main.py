@@ -1,12 +1,21 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import requests
+from flask import Flask
+import threading
 
 # Token de tu bot de Telegram
 TELEGRAM_BOT_TOKEN = '7872010028:AAGial5BjOzxa_Bx_tZw00uzqvcmEYqOFxU'
 
 # URL de la API para obtener el valor del dólar según el BCV
 API_URL = "https://pydolarve.org/api/v1/dollar?page=bcv&monitor=usd&format_date=default&rounded_price=true"
+
+# Configuración del servidor Flask
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "¡El bot de Telegram está activo! �"
 
 # Función para obtener el valor actual del dólar según el BCV
 def get_dollar_price():
@@ -81,8 +90,8 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         "👉 /help - Mostrar esta ayuda"
     )
 
-# Función principal para configurar y ejecutar el bot
-def main() -> None:
+# Función para iniciar el bot de Telegram
+def run_bot():
     # Crea la aplicación y pasa el token de tu bot
     application = Application.builder().token(TELEGRAM_BOT_TOKEN).build()
 
@@ -94,5 +103,14 @@ def main() -> None:
     # Inicia el bot
     application.run_polling()
 
+# Función para iniciar el servidor Flask
+def run_flask():
+    app.run(host='0.0.0.0', port=10000)
+
 if __name__ == "__main__":
-    main()
+    # Inicia el servidor Flask en un hilo separado
+    flask_thread = threading.Thread(target=run_flask)
+    flask_thread.start()
+
+    # Inicia el bot de Telegram
+    run_bot()
